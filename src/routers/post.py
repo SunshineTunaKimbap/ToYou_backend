@@ -1,7 +1,11 @@
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException, Form
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
 from typing import List, Dict, Annotated
 from src.utils.abbr import to_abbr
+from src.database.connect import get_db
+from src.database.models import Letter
 
 router = APIRouter()
 
@@ -9,15 +13,8 @@ class Letter_Request(BaseModel):
     name_sender: str
     name_receiver: str
     content: str
-class Letter(BaseModel):
-    name_sender : str
-    abbr_sender : str
-    name_receiver : str
-    abbr_receiver : str
-    content : str
-
 @router.post("/")
-async def create_post(post: Letter_Request):
+async def create_letter(post: Letter_Request, db: Session = Depends(get_db)):
     """
     Create a new post.
     """
@@ -30,4 +27,8 @@ async def create_post(post: Letter_Request):
         abbr_receiver=to_abbr(post.name_receiver),
         content=post.content
     )
+
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
     return {"message": "Post created successfully", "post": new_post}
