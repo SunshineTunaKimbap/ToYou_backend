@@ -3,7 +3,7 @@ from src.utils.abbr import to_abbr
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from src.database.connect import get_db
-from src.database.models import Letter
+from src.database.models import Letter, ReceiverGroup
 router = APIRouter()
 
 def find_letter_by_abbr(abbr: str, db):
@@ -19,14 +19,49 @@ def find_letter_by_group(group: int, db):
 @router.get("/{name}")
 async def search_items(name: str, db: Session = Depends(get_db)):
     abbr_name = to_abbr(name)
-    # Filter mock data by receiver's abbreviation
-    results = find_letter_by_abbr(abbr_name, db.query(Letter)).all()
-    return {"letters": results}
+    # Query specific fields
+    results = (
+        find_letter_by_abbr(abbr_name, db.query(Letter))
+        .with_entities(Letter.id, Letter.abbr_sender, Letter.abbr_receiver, Letter.content, Letter.group_receiver_id)
+        .all()
+    )
+    # Convert results to a list of dictionaries
+    letters = [
+        {
+            "id": r[0],
+            "abbr_sender": r[1],
+            "abbr_receiver": r[2],
+            "content": r[3],
+            "group_receiver_id": r[4],
+            "group_receiver": (
+                db.query(ReceiverGroup).filter(ReceiverGroup.id == r[4]).first()
+            ).name if db.query(ReceiverGroup).filter(ReceiverGroup.id == r[4]).first() else "Unknown Group"
+        }
+        for r in results
+    ]
+    return {"letters": letters}
 
 
 @router.get("/{name}/{group}")
 async def search_items_w_group(name: str, group: int, db: Session = Depends(get_db)):
     abbr_name = to_abbr(name)
-    # Filter mock data by receiver's abbreviation and group (mock logic for group)
-    results = find_letter_by_group(group, find_letter_by_abbr(abbr_name, db.query(Letter))).all()
-    return {"letters": results}
+    results = (
+        find_letter_by_group(group, find_letter_by_abbr(abbr_name, db.query(Letter)))
+        .with_entities(Letter.id, Letter.abbr_sender, Letter.abbr_receiver, Letter.content, Letter.group_receiver_id)
+        .all()
+    )
+    # Convert results to a list of dictionaries
+    letters = [
+        {
+            "id": r[0],
+            "abbr_sender": r[1],
+            "abbr_receiver": r[2],
+            "content": r[3],
+            "group_receiver_id": r[4],
+            "group_receiver": (
+                db.query(ReceiverGroup).filter(ReceiverGroup.id == r[4]).first()
+            ).name if db.query(ReceiverGroup).filter(ReceiverGroup.id == r[4]).first() else "Unknown Group"
+        }
+        for r in results
+    ]
+    return {"letters": letters}
