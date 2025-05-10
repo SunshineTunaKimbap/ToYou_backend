@@ -13,6 +13,9 @@ class Letter_Request(BaseModel):
     name_sender: str
     name_receiver: str
     content: str
+    group_receiver_id: int | None = 0
+    design_id: int | None = 0
+
 @router.post("/")
 async def create_letter(post: Letter_Request, db: Session = Depends(get_db)):
     """
@@ -25,7 +28,9 @@ async def create_letter(post: Letter_Request, db: Session = Depends(get_db)):
         abbr_sender=to_abbr(post.name_sender),
         name_receiver=post.name_receiver,
         abbr_receiver=to_abbr(post.name_receiver),
-        content=post.content
+        content=post.content,
+        group_receiver_id=post.group_receiver_id,
+        design_id=post.design_id,
     )
 
     db.add(new_post)
