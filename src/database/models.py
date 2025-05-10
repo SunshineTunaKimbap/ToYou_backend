@@ -1,8 +1,8 @@
 from sqlalchemy import Column, Integer, String
-from .connect import ModelBase
+from .connect import DB_props
 
 # Example model
-class Letter(ModelBase):
+class Letter(DB_props.get_instance().ModelBase):
     __tablename__ = "letter"
     id = Column(Integer, primary_key=True, index=True)
     name_sender = Column(String)
