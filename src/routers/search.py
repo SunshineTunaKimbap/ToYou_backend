@@ -29,7 +29,8 @@ def letter_to_dict(letters, db):
             ).name if db.query(ReceiverGroup).filter(ReceiverGroup.id == r[4]).first() else "Unknown Group",
             "locked": (r[5] is not None)
         }
-        for r in letters
+        for r in letters.with_entities(Letter.id, Letter.abbr_sender, Letter.abbr_receiver, Letter.content, Letter.group_receiver_id, Letter.pin)
+        .all()
         ]
 @router.get("/{name}")
 async def search_items(name: str, db: Session = Depends(get_db)):
@@ -37,8 +38,6 @@ async def search_items(name: str, db: Session = Depends(get_db)):
     # Query specific fields
     results = (
         find_letter_by_abbr(abbr_name, db.query(Letter))
-        .with_entities(Letter.id, Letter.abbr_sender, Letter.abbr_receiver, Letter.content, Letter.group_receiver_id, Letter.pin)
-        .all()
     )
     # Convert results to a list of dictionaries
     letters = letter_to_dict(results, db)
@@ -50,8 +49,6 @@ async def search_items_w_group(name: str, group: int, db: Session = Depends(get_
     abbr_name = to_abbr(name)
     results = (
         find_letter_by_group(group, find_letter_by_abbr(abbr_name, db.query(Letter)))
-        .with_entities(Letter.id, Letter.abbr_sender, Letter.abbr_receiver, Letter.content, Letter.group_receiver_id)
-        .all()
     )
     letters = letter_to_dict(results, db)
     return {"letters": letters}
