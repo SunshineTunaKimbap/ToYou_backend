@@ -18,6 +18,9 @@ def to_abbr(name: str) -> str:
             char_code = ord(char) - ord('가')
             cho_index = char_code // 588  # 초성은 588개의 글자 단위로 반복됨
             abbr += CHO_SUNG[cho_index]
+        elif char in CHO_SUNG:
+            # If the character is already an initial consonant, add it directly
+            abbr += char
         else:
             # Raise an exception if a non-Korean character is found
             raise ValueError(f"Invalid character '{char}' in input. Only Korean characters are allowed.")
