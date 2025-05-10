@@ -4,6 +4,9 @@ app = FastAPI()
 
 @app.get("/")
 async def root():
+    
+    # save_post("이름", "내용")
+
     return {
         "message": "SUNSHINE TUNA KIMBAP SKYST"
     }
@@ -11,5 +14,3 @@ async def root():
 @app.get("/favicon.ico")
 async def favicon():
     return {}
-
-
