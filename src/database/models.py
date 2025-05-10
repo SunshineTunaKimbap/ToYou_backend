@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from .connect import DB_props
+from .connect import DB_props, MODEL_BASE
 
 # Example model
 class Letter(DB_props.get_instance().ModelBase):

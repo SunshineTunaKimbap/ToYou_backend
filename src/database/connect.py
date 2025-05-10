@@ -11,7 +11,6 @@ class DB_props:
         self.engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
         self.SessionLocal = sessionmaker(bind=self.engine, autocommit=False, autoflush=False)
         self.ModelBase = declarative_base()
-        self.ModelBase.metadata.create_all(bind=self.engine)
         DB_props.instance = self
 
     def get_instance():
@@ -21,8 +20,11 @@ class DB_props:
 
 # Get database
 def get_db():
-    db = DB_props.get_instance().SessionLocal
+    db = DB_props.get_instance().SessionLocal()
     try:
+        DB_props.get_instance().ModelBase.metadata.create_all(bind=DB_props.get_instance().engine)
         yield db
     finally:
         db.close()
+
+MODEL_BASE = DB_props.get_instance().ModelBase
