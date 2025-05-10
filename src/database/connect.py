@@ -4,17 +4,24 @@ from sqlalchemy.ext.declarative import declarative_base
 
 
 class DB_props:
+    instance = None
     def __init__(self):
         DATABASE_URL = "sqlite:///./sqlite_test.db"
 
-        engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-        SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-        ModelBase = declarative_base()
-        ModelBase.metadata.create_all(bind=engine)
+        self.engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+        self.SessionLocal = sessionmaker(bind=self.engine, autocommit=False, autoflush=False)
+        self.ModelBase = declarative_base()
+        self.ModelBase.metadata.create_all(bind=self.engine)
+        DB_props.instance = self
+
+    def get_instance():
+        if DB_props.instance == None:
+            db = DB_props()
+        return DB_props.instance
 
 # Get database
 def get_db():
-    db = SessionLocal()
+    db = DB_props.get_instance().SessionLocal
     try:
         yield db
     finally:
