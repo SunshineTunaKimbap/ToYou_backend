@@ -21,6 +21,7 @@ async def unlock_letter(req : unlock_letter_Request, db: Session = Depends(get_d
     if letter:
         if letter.pin == req.pin:
             return {"message": "Letter unlocked successfully", "letter": letter}
-        return {"letter": letter}
+        else:
+            return {"error": "Incorrect pin"}
     else:
         return {"error": "Letter not found"}
