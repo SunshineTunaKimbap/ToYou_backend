@@ -22,8 +22,6 @@
   - 발신자와 수신자의 이름, 그리고 편지의 내용을 입력하면 편지를 발송할 수 있습니다.
 - 편지 수신
   - 자신의 이름과 같은 초성에게 쓰여진 편지들을 확인할 수 있습니다.
-- 발신자 찾기
-  - 발신자가 설정한 비밀번호를 입력하면 발신자의 초성을 확인할 수 있습니다.
 
 ## 2차 MVP
 
@@ -31,4 +29,141 @@
   - 수신자의 대학을 지정할 수 있고, 수신자는 자신의 대학에 해당하는는 편지만을 필터링해서 볼 수 있습니다.
 - 잠긴 내용
   - PIN으로 숨겨진 내용을 작성할 수 있으며 수신자가 PIN을 맞추면 해당 내용을 확인할 수 있습니다.
--
+- 편지지 디자인 선택
+  - 여러 편지지의 디자인을 선택할 수 있습니다.
+
+# API Guide
+
+## GET
+
+- /api/search/{name}
+  - 이름을 입력하면 해당 이름과 같은 초성에 해당하는 편지를 필터링해 출력합니다.
+  - 사용 예시
+  ```cmd
+  curl -X 'GET' \
+  'http://127.0.0.1:8000/api/search/신호진진' \
+  -H 'accept: application/json'
+  ```
+  ```json
+  {
+    "letters": [
+      {
+        "id": 17549,
+        "abbr_sender": "ㄷㅋㄴ",
+        "abbr_receiver": "ㅅㅎㅈ",
+        "content": "눈을 감으면, 그때 네 미소가 보여.",
+        "group_receiver_id": 1,
+        "group_receiver": "고려대학교",
+        "locked": false
+      },
+      {
+        "id": 19882,
+        "abbr_sender": "ㄱㅍㅅ",
+        "abbr_receiver": "ㅅㅎㅈ",
+        "content": "익숙한 노래에 네가 떠오른다.",
+        "group_receiver_id": 1,
+        "group_receiver": "고려대학교",
+        "locked": false
+      }
+    ]
+  }
+  ```
+- /api/search/{name}/{group_id}
+  - 이름괴 그룹에 해당하는 편지를 필터링해 반환합니다.
+  - 사용 예시
+  ```cmd
+  curl -X 'GET' \
+  'http://127.0.0.1:8000/api/search/박재현현/1' \
+  -H 'accept: application/json'
+  ```
+  ```json
+  {
+    "letters": [
+      {
+        "id": 1061,
+        "abbr_sender": "ㄱㅁㅌ",
+        "abbr_receiver": "ㄱㅅㅂ",
+        "content": "손끝에 닿을 듯, 닿지 않는 너.",
+        "group_receiver_id": 1,
+        "group_receiver": "고려대학교",
+        "locked": false
+      },
+      {
+        "id": 2219,
+        "abbr_sender": "ㅇㄱㅎ",
+        "abbr_receiver": "ㄱㅅㅂ",
+        "content": "하루에도 몇 번씩, 네 생각에 머문다.",
+        "group_receiver_id": 1,
+        "group_receiver": "고려대학교",
+        "locked": false
+      }
+    ]
+  }
+  ```
+
+## POST
+
+- /api/post/
+  - 편지를 추가합니다.
+  - 사용예시
+    - 입력
+    ```json
+    {
+      "name_sender": "신호진",
+      "name_receiver": "김두한",
+      "content": "string",
+      "group_receiver_id": 0,
+      "design_id": 0,
+      "pin": "1234",
+      "content_secret": "string"
+    }
+    ```
+    - 출력
+    ```json
+    {
+      "message": "Post created successfully",
+      "post": {
+        "abbr_sender": "ㅅㅎㅈ",
+        "id": 30601,
+        "group_receiver_id": 0,
+        "content": "string",
+        "pin": "1234",
+        "name_sender": "신호진",
+        "name_receiver": "김두한",
+        "abbr_receiver": "ㄱㄷㅎ",
+        "design_id": 0,
+        "content_secret": "string"
+      }
+    }
+    ```
+- /api/unlock/
+  - PIN으로 숨겨진 내용을 확인합니다
+  - 사용예시
+    - 입력
+    ```json
+    {
+      "id": 30601,
+      "pin": "1234"
+    }
+    ```
+    - 출력
+    ```json
+    {
+      "message": "Letter unlocked successfully",
+      "letter": {
+        "abbr_sender": "ㅅㅎㅈ",
+        "id": 30601,
+        "group_receiver_id": 0,
+        "content": "string",
+        "pin": "1234",
+        "name_sender": "신호진",
+        "name_receiver": "김두한",
+        "abbr_receiver": "ㄱㄷㅎ",
+        "design_id": 0,
+        "content_secret": "string"
+      }
+    } // success
+    {
+      "error": "Incorrect pin"
+    } // error
+    ```
